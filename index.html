@@ -206,12 +206,12 @@
         
         table {
             width: 100%;
-            min-width: 450px;
+            min-width: 400px;
             border-collapse: collapse;
         }
         
         th, td {
-            padding: 8px 3px;
+            padding: 8px 0;
             text-align: center;
             border-bottom: 1px solid #2a2a2a;
         }
@@ -221,6 +221,16 @@
             color: #ff6b35;
             font-size: 0.8rem;
             font-weight: 600;
+        }
+        
+        th:first-child,
+        td:first-child {
+            width: 15%;
+        }
+        
+        th:last-child,
+        td:last-child {
+            width: 20%;
         }
         
         td {
@@ -666,7 +676,7 @@
     <script src="firebase-config.js"></script>
     
     <!-- Data service -->
-    <script src="data-service.js?v=20250806-filter-all"></script>
+    <script src="data-service.js?v=20250806-normalized-data"></script>
     
     <!-- Data loading and UI connection -->
     <script>

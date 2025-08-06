@@ -5,6 +5,119 @@
 class DataService {
     constructor() {
         this.db = window.db;
+        
+        // Define invalid names that should be filtered/replaced
+        this.invalidCategoryNames = [
+            'all categories', 'all reddit', 'all youtube', 'all',
+            'reddit', 'youtube', 'combined',
+            'aggregated', 'summary', 'total', 'misc', 'other', 'unknown'
+        ];
+        
+        this.invalidProductNames = [
+            'all', 'total', 'summary', 'aggregated', 'combined', 
+            'misc', 'other', 'unknown'
+        ];
+    }
+
+    /**
+     * Centralized data normalization for all Firebase data structures
+     * Handles arrays, objects, and various field naming conventions
+     */
+    normalizeFirebaseEntry(key, value, sourceCategory = null) {
+        let productName = key;
+        let metrics = value;
+        let wasNumericKey = false;
+        
+        // Handle object structure where key might be index and name is in metrics
+        if (typeof value === 'object' && value !== null) {
+            // If key is numeric, look for actual name in metrics
+            if (/^\d+$/.test(key)) {
+                wasNumericKey = true;
+                if (value.keyword) {
+                    productName = value.keyword;
+                    console.log(`📦 Found keyword in metrics: "${key}" → "${productName}"`);
+                } else if (value.name) {
+                    productName = value.name;
+                    console.log(`📦 Found name in metrics: "${key}" → "${productName}"`);
+                } else if (value.product_name) {
+                    productName = value.product_name;
+                    console.log(`📦 Found product_name in metrics: "${key}" → "${productName}"`);
+                } else if (value.productName) {
+                    productName = value.productName;
+                    console.log(`📦 Found productName in metrics: "${key}" → "${productName}"`);
+                } else {
+                    console.log(`⚠️ Numeric key "${key}" has no name field in metrics`);
+                    return null; // Skip if numeric key has no name field
+                }
+            }
+            metrics = value;
+        } else {
+            console.warn(`⚠️ Unexpected data structure for key "${key}":`, value);
+            return null;
+        }
+        
+        // Validate product name
+        if (!productName || this.isInvalidProductName(productName)) {
+            console.log(`🚫 Skipping invalid product: "${productName}"`);
+            return null;
+        }
+        
+        // Extract and validate category
+        let category = this.extractCategory(metrics, sourceCategory);
+        
+        // Return normalized data
+        return {
+            name: productName,
+            category: category,
+            metrics: metrics
+        };
+    }
+    
+    /**
+     * Extract and clean category from metrics or use source
+     */
+    extractCategory(metrics, sourceCategory) {
+        // Try to get category from metrics first
+        if (metrics.category && this.isValidCategory(metrics.category)) {
+            return this.cleanCategoryName(metrics.category);
+        } 
+        
+        // Use source category (document name) if valid
+        if (sourceCategory && this.isValidCategory(sourceCategory)) {
+            return this.cleanCategoryName(sourceCategory);
+        }
+        
+        // Default fallback
+        return 'General';
+    }
+    
+    /**
+     * Check if a category name is valid
+     */
+    isValidCategory(categoryName) {
+        if (!categoryName || typeof categoryName !== 'string') return false;
+        const cleanName = categoryName.toLowerCase().trim();
+        return !this.invalidCategoryNames.includes(cleanName);
+    }
+    
+    /**
+     * Check if a product name is valid
+     */
+    isInvalidProductName(productName) {
+        if (!productName || typeof productName !== 'string') return true;
+        const cleanName = productName.toLowerCase().trim();
+        return this.invalidProductNames.some(invalid => 
+            cleanName === invalid.toLowerCase()
+        );
+    }
+    
+    /**
+     * Clean and format category name
+     */
+    cleanCategoryName(categoryName) {
+        return categoryName.split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
     }
 
     // Fetch hot items from PH-dashboard (for "New" filter)
@@ -160,37 +273,29 @@ class DataService {
                 if (windowData && typeof windowData === 'object') {
                     console.log('✅ Found YouTube time window data');
                     
-                    // Filter out invalid product names and category-like entries
-                    const invalidProductNames = ['all', 'All', 'ALL', 'total', 'Total', 'summary', 'Summary', 'aggregated', 'combined', 'misc', 'other', 'unknown'];
-                    
+                    // Use centralized normalization for YouTube data
                     const items = Object.entries(windowData)
-                        .filter(([key, value]) => {
-                            // Filter out invalid product names (case-insensitive)
-                            const keyLower = key.toLowerCase();
-                            if (invalidProductNames.some(invalid => invalid.toLowerCase() === keyLower)) {
-                                console.log(`🚫 Filtering out invalid YouTube product name: "${key}"`);
-                                return false;
-                            }
+                        .map(([key, value]) => {
+                            const normalized = this.normalizeFirebaseEntry(key, value, category === 'all' ? 'media' : category);
+                            if (!normalized) return null;
                             
-                            // Must be an object with valid YouTube metrics (existing logic)
-                            return typeof value === 'object' && (value.velocity !== undefined || value.video_count !== undefined);
-                        })
-                        .map(([keyword, metrics]) => {
-                            console.log(`🔍 YouTube keyword "${keyword}" raw metrics:`, metrics);
+                            const metrics = normalized.metrics;
+                            // Must have YouTube-specific metrics
+                            if (metrics.velocity === undefined && metrics.video_count === undefined) return null;
+                            
                             const videoCount = metrics.video_count || metrics.new_videos_in_day || 0;
-                            console.log(`📊 Mapped videoCount for "${keyword}":`, videoCount);
                             
                             return {
-                                name: keyword,
-                                category: category === 'all' ? 'media' : category,
+                                name: normalized.name,
+                                category: normalized.category,
                                 momentum: metrics.acceleration || 0,
                                 velocity: metrics.velocity || 0,
                                 videoCount: videoCount,
                                 source: 'youtube',
-                                // Use pre-calculated rank from Firebase if available
                                 preRank: metrics.rank || null
                             };
-                        });
+                        })
+                        .filter(item => item !== null);
                     
                     console.log(`📊 YouTube data received (expecting pre-sorted from Firebase):`);
                     console.log(`  - Total items: ${items.length}`);
@@ -262,32 +367,27 @@ class DataService {
                 return [];
             }
             
-            // Convert object to array - expecting pre-sorted data from Firebase
-            // Filter out invalid product names and category-like entries
-            const invalidProductNames = ['all', 'All', 'ALL', 'total', 'Total', 'summary', 'Summary', 'aggregated', 'combined', 'misc', 'other', 'unknown'];
-            
+            // Convert object to array using centralized normalization
             const items = Object.entries(windowData)
-                .filter(([key, value]) => {
-                    // Filter out invalid product names (case-insensitive)
-                    const keyLower = key.toLowerCase();
-                    if (invalidProductNames.some(invalid => invalid.toLowerCase() === keyLower)) {
-                        console.log(`🚫 Filtering out invalid Reddit product name: "${key}"`);
-                        return false;
-                    }
+                .map(([key, value]) => {
+                    const normalized = this.normalizeFirebaseEntry(key, value, category);
+                    if (!normalized) return null;
                     
-                    // Must be an object with velocity defined (existing logic)
-                    return typeof value === 'object' && value.velocity !== undefined;
+                    const metrics = normalized.metrics;
+                    // Must have velocity for Reddit data
+                    if (metrics.velocity === undefined) return null;
+                    
+                    return {
+                        name: normalized.name,
+                        category: normalized.category,
+                        momentum: metrics.acceleration || 0,
+                        velocity: metrics.velocity,
+                        postCount: metrics.post_count || 0,
+                        source: 'reddit',
+                        preRank: metrics.rank || null
+                    };
                 })
-                .map(([keyword, metrics]) => ({
-                    name: keyword,
-                    category: category === 'all' ? metrics.category || category : category,
-                    momentum: metrics.acceleration,
-                    velocity: metrics.velocity,
-                    postCount: metrics.post_count,
-                    source: 'reddit',
-                    // Use pre-calculated rank from Firebase, or fallback to array index
-                    preRank: metrics.rank || null
-                }));
+                .filter(item => item !== null);
             
             console.log(`📊 Reddit data received (expecting pre-sorted from Firebase):`);
             console.log(`  - Total items: ${items.length}`);
@@ -350,14 +450,28 @@ class DataService {
                         console.log(`🔍 Checking key "${key}": valid=${isValid}`, value);
                         return isValid;
                     })
-                    .map(([keyword, metrics]) => ({
-                        name: keyword,
-                        category: category === 'all' ? 'media' : category,
-                        momentum: metrics.acceleration,
-                        velocity: metrics.velocity,
-                        videoCount: metrics.video_count,
-                        source: 'youtube'
-                    }))
+                    .map(([keyword, metrics]) => {
+                        // Handle new Firebase structure where product name might be in metrics.name
+                        let productName = keyword;
+                        
+                        // If keyword is a number (like "0", "1", "2"), the real name is likely in metrics
+                        if (/^\d+$/.test(keyword) && metrics.name) {
+                            productName = metrics.name;
+                            console.log(`🔄 YouTube (main doc): Using metrics.name "${metrics.name}" instead of key "${keyword}"`);
+                        } else if (metrics.product_name) {
+                            productName = metrics.product_name;
+                            console.log(`🔄 YouTube (main doc): Using metrics.product_name "${metrics.product_name}" instead of key "${keyword}"`);
+                        }
+                        
+                        return {
+                            name: productName,
+                            category: category === 'all' ? 'media' : category,
+                            momentum: metrics.acceleration,
+                            velocity: metrics.velocity,
+                            videoCount: metrics.video_count,
+                            source: 'youtube'
+                        };
+                    })
                     .sort((a, b) => b.velocity - a.velocity);
                 
                 console.log(`✅ Processed ${items.length} YouTube items from main document`);
@@ -443,14 +557,28 @@ class DataService {
             
             // Convert to array and sort by velocity
             const items = Object.entries(keywords)
-                .map(([keyword, metrics]) => ({
-                    name: keyword,
-                    category: category === 'all' ? 'media' : category,
-                    momentum: metrics.acceleration,
-                    velocity: metrics.velocity,
-                    videoCount: metrics.video_count,
-                    source: 'youtube'
-                }))
+                .map(([keyword, metrics]) => {
+                    // Handle new Firebase structure where product name might be in metrics.name
+                    let productName = keyword;
+                    
+                    // If keyword is a number (like "0", "1", "2"), the real name is likely in metrics
+                    if (/^\d+$/.test(keyword) && metrics.name) {
+                        productName = metrics.name;
+                        console.log(`🔄 YouTube (subcollection): Using metrics.name "${metrics.name}" instead of key "${keyword}"`);
+                    } else if (metrics.product_name) {
+                        productName = metrics.product_name;
+                        console.log(`🔄 YouTube (subcollection): Using metrics.product_name "${metrics.product_name}" instead of key "${keyword}"`);
+                    }
+                    
+                    return {
+                        name: productName,
+                        category: category === 'all' ? 'media' : category,
+                        momentum: metrics.acceleration,
+                        velocity: metrics.velocity,
+                        videoCount: metrics.video_count,
+                        source: 'youtube'
+                    };
+                })
                 .sort((a, b) => b.velocity - a.velocity);
             
             // Add rank
@@ -542,115 +670,166 @@ class DataService {
             console.log(`🚀 Fetching combined data for category: ${category}, timeWindow: ${timeWindow}`);
             
             // For all_categories collection, each category has its own document
-            let doc;
+            let allData = {};
+            
             if (category === 'all') {
-                // For now, aggregate from ai_chatbots as a test
-                // TODO: Aggregate from all category documents
-                console.log('Fetching all categories - using ai_chatbots for now');
-                doc = await this.db.collection('all_categories').doc('ai_chatbots').get();
+                // Aggregate from all category documents
+                console.log('🔍 Fetching all categories - aggregating from all documents...');
+                
+                try {
+                    const snapshot = await this.db.collection('all_categories').get();
+                    const categoryPromises = [];
+                    
+                    snapshot.forEach(doc => {
+                        const categoryName = doc.id;
+                        
+                        // Skip aggregate documents when building "all categories" view
+                        if (categoryName === 'all_categories' || categoryName === 'all_reddit' || categoryName === 'reddit') {
+                            console.log(`⏭️ Skipping aggregate document: ${categoryName}`);
+                            return;
+                        }
+                        
+                        console.log(`📂 Found category document: ${categoryName}`);
+                        categoryPromises.push({
+                            categoryName,
+                            data: doc.data()
+                        });
+                    });
+                    
+                    // Merge all category data into one object
+                    categoryPromises.forEach(({categoryName, data}) => {
+                        if (data && data[`${timeWindow}_days`]) {
+                            const timeWindowData = data[`${timeWindow}_days`];
+                            
+                            Object.entries(timeWindowData).forEach(([keyword, value]) => {
+                                // Use centralized normalization
+                                const normalized = this.normalizeFirebaseEntry(keyword, value, categoryName);
+                                
+                                if (normalized) {
+                                    // Store with the actual product name as key
+                                    allData[normalized.name] = {
+                                        ...normalized.metrics,
+                                        category: normalized.category,
+                                        _sourceDoc: categoryName // Keep for debugging
+                                    };
+                                }
+                            });
+                        }
+                    });
+                    
+                    console.log(`✅ Aggregated data from ${categoryPromises.length} categories, total products: ${Object.keys(allData).length}`);
+                    
+                } catch (error) {
+                    console.error('Error aggregating all categories:', error);
+                    return [];
+                }
+                
             } else {
-                doc = await this.db.collection('all_categories').doc(category).get();
+                // Single category fetch
+                const doc = await this.db.collection('all_categories').doc(category).get();
+                if (!doc.exists) {
+                    console.error(`Category document not found: ${category}`);
+                    return [];
+                }
+                allData = doc.data();
             }
             
-            if (!doc.exists) {
-                console.error('❌ Combined category document not found:', category);
+            // Check if we have any data
+            if (Object.keys(allData).length === 0) {
+                console.error('❌ No combined data found for category:', category);
                 return [];
             }
+
+            console.log(`✅ Processing combined data for category: ${category}`);
             
-            const data = doc.data();
-            console.log(`📊 Full document data keys:`, Object.keys(data));
-            console.log(`🔍 Looking for timeWindow: "${timeWindow}_days"`);
+            // For aggregated data, the windowData is already extracted and merged
+            // For single category, we need to extract the time window
+            let windowData;
+            if (category === 'all') {
+                windowData = allData; // Already processed and merged
+                console.log(`📊 Aggregated window data with ${Object.keys(windowData).length} products`);
+            } else {
+                windowData = allData[`${timeWindow}_days`];
+                console.log(`📊 Single category data keys:`, Object.keys(allData));
+                console.log(`🔍 Looking for timeWindow: "${timeWindow}_days"`);
+                console.log(`📋 Window data found:`, windowData ? 'YES' : 'NO');
+                if (!windowData) {
+                    console.error(`❌ Time window ${timeWindow}_days not found in document ${category}`);
+                    return [];
+                }
+            }
             
-            const windowData = data[`${timeWindow}_days`];
-            console.log(`📋 Window data found:`, windowData ? 'YES' : 'NO');
-            console.log(`📋 Window data:`, windowData);
-            
-            if (!windowData) {
+            // Additional validation for single category data
+            if (!windowData && category !== 'all') {
                 console.error('❌ Time window not found:', timeWindow);
-                console.log('📊 Available time windows:', Object.keys(data).filter(key => key.includes('_days')));
+                console.log('📊 Available time windows:', Object.keys(allData).filter(key => key.includes('_days')));
                 return [];
             }
             
             // Extract individual keywords
             console.log(`📊 Window data structure for ${category}:`, Object.keys(windowData));
-            console.log(`📋 Sample keyword data:`, Object.entries(windowData).slice(0, 2));
+            console.log(`📋 First 5 entries RAW:`, Object.entries(windowData).slice(0, 5));
             
-            // Filter out invalid product names and category-like entries
-            const invalidProductNames = ['all', 'All', 'ALL', 'total', 'Total', 'summary', 'Summary', 'aggregated', 'combined', 'misc', 'other', 'unknown'];
+            // Log sample data structure for debugging
+            const sampleEntry = Object.entries(windowData)[0];
+            if (sampleEntry) {
+                console.log(`📊 Sample data structure: key="${sampleEntry[0]}", type=${Array.isArray(sampleEntry[1]) ? 'array' : typeof sampleEntry[1]}`);
+            }
+            
             
             const items = Object.entries(windowData)
-                .filter(([key, value]) => {
-                    // Filter out invalid product names (case-insensitive)
-                    const keyLower = key.toLowerCase();
-                    if (invalidProductNames.some(invalid => invalid.toLowerCase() === keyLower)) {
-                        console.log(`🚫 Filtering out invalid product name: "${key}"`);
-                        return false;
-                    }
+                .map(([key, value]) => this.normalizeFirebaseEntry(key, value, category))
+                .filter(normalized => {
+                    if (!normalized) return false;
                     
-                    // Must be an object with valid data
-                    if (typeof value !== 'object' || value === null) {
-                        return false;
-                    }
-                    
-                    // Must have some meaningful metrics (at least one of these fields)
-                    const hasValidMetrics = value.post_count !== undefined || 
-                                          value.reddit_post_count !== undefined || 
-                                          value.velocity !== undefined ||
-                                          value.combined_score !== undefined;
+                    // Must have some meaningful metrics
+                    const metrics = normalized.metrics;
+                    const hasValidMetrics = 
+                        metrics.post_count !== undefined || 
+                        metrics.reddit_post_count !== undefined || 
+                        metrics.velocity !== undefined ||
+                        metrics.combined_score !== undefined;
                     
                     return hasValidMetrics;
-                })
-                .map(([keyword, metrics]) => {
-                    // Try to get the actual category from the metrics, or derive it intelligently
-                    let actualCategory = category;
-                    
-                    // Check if metrics has category information
-                    if (metrics.category) {
-                        actualCategory = metrics.category;
-                    } else if (category === 'all') {
-                        // For "all" categories, try to derive category from keyword or use the document name
-                        actualCategory = 'trending'; // Default fallback
-                    } else {
-                        // Use the selected category
-                        actualCategory = category;
-                    }
-                    
-                    console.log(`🏷️ Keyword "${keyword}" assigned category: "${actualCategory}"`);
-                    
-                    return {
-                        name: keyword,
-                        category: actualCategory,
-                        momentum: metrics.acceleration,
-                        velocity: metrics.velocity,
-                        combinedScore: metrics.combined_score,
-                        post_count: metrics.reddit_post_count || metrics.post_count || 0,
-                        redditPosts: metrics.reddit_post_count || 0,
-                        youtubeVideos: metrics.youtube_video_count || 0,
-                        source: 'combined',
-                        // Use pre-calculated rank from Firebase if available
-                        preRank: metrics.rank || null
-                    };
-                })
+                });
+            
+            
+            const finalItems = items.map(normalized => {
+                const metrics = normalized.metrics;
+                
+                return {
+                    name: normalized.name,
+                    category: normalized.category,
+                    momentum: metrics.acceleration || 0,
+                    velocity: metrics.velocity || 0,
+                    combinedScore: metrics.combined_score || 0,
+                    post_count: metrics.reddit_post_count || metrics.post_count || 0,
+                    redditPosts: metrics.reddit_post_count || 0,
+                    youtubeVideos: metrics.youtube_video_count || 0,
+                    source: 'combined',
+                    preRank: metrics.rank || null
+                };
+            });
             
             console.log(`📊 Combined data received (expecting pre-sorted from Firebase):`);
-            console.log(`  - Total items: ${items.length}`);
-            console.log(`  - Items with pre-rank: ${items.filter(item => item.preRank).length}`);
+            console.log(`  - Total items: ${finalItems.length}`);
+            console.log(`  - Items with pre-rank: ${finalItems.filter(item => item.preRank).length}`);
             
             // If Firebase data includes ranks, sort by rank; otherwise assume already sorted by Firebase query  
-            if (items.some(item => item.preRank)) {
+            if (finalItems.some(item => item.preRank)) {
                 console.log('🔢 Sorting by Firebase pre-calculated ranks');
-                items.sort((a, b) => (a.preRank || 999) - (b.preRank || 999));
+                finalItems.sort((a, b) => (a.preRank || 999) - (b.preRank || 999));
             } else {
                 console.log('✅ Using Firebase query order (assumed pre-sorted)');
             }
             
             console.log(`📊 Top 3 combined data items:`);
-            items.slice(0, 3).forEach((item, index) => {
+            finalItems.slice(0, 3).forEach((item, index) => {
                 console.log(`${index + 1}. ${item.name}: post_count=${item.post_count}, velocity=${item.velocity}, preRank=${item.preRank}`);
             });
             
             // Add rank
-            const result = items.map((item, index) => ({
+            const result = finalItems.map((item, index) => ({
                 ...item,
                 rank: index + 1
             }));

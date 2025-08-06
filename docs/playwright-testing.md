@@ -52,36 +52,42 @@ export default defineConfig({
 
 ### Dashboard Layout Tests (`tests/dashboard.spec.js`)
 
-The test suite covers:
+The comprehensive test suite covers:
 
-1. **Top Bar Components**
-   - Time filter buttons (7d, 30d, 90d)
-   - Category dropdown with proper options
-   - Default active states
+1. **Top Bar Components** 
+   - Time filter buttons (7d, 30d, 90d) with active states
+   - Platform filter buttons (All, Reddit, YouTube)
+   - Category dropdown with dynamic Firebase options
+   - Default states and button interactions
 
 2. **Layout Structure**
-   - Two-column grid layout (1:2 ratio)
-   - Left column: ranking table
-   - Right column: performance chart
+   - Two-column grid layout (1fr:2fr ratio)
+   - Left column: rankings and trending tables
+   - Right column: performance chart matching table heights
+   - Responsive breakpoints at 900px
 
 3. **Data Display**
-   - Ranking table with proper headers and data
-   - Chart canvas and legend components
-   - Proper data visualization
+   - Rankings table with live Firebase data (Rank, Name, Category, Post Count)
+   - Trending table with Product Hunt integration
+   - Chart canvas with top 3 products and real metrics
+   - Proper text formatting (cleaned names and categories)
 
-4. **Interactivity**
-   - Time filter button switching
-   - Category dropdown functionality
-   - Chart legend interactions
+4. **Advanced Functionality**
+   - Dynamic chart updates based on filter selections
+   - Live data filtering by category and platform
+   - Time period chart axis updates (7d/30d/90d)
+   - Real date labels instead of relative time
 
-5. **Responsive Design**
-   - Mobile viewport testing
-   - Element visibility across screen sizes
+5. **Performance Features**
+   - Optimized loading with pre-sorted Firebase data
+   - No client-side sorting for improved speed
+   - Invalid data filtering and validation
 
-6. **Visual Testing**
-   - Full page screenshots
-   - Component-specific screenshots
-   - Visual regression testing
+6. **Responsive Design & Visual Testing**
+   - Mobile viewport testing with single-column layout
+   - Element visibility and interaction across screen sizes
+   - Full dashboard screenshots for visual regression
+   - Component-specific verification (topbar, content, chart)
 
 ## Running Tests
 

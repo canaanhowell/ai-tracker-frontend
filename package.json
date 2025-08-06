@@ -19,5 +19,8 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.54.2"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.4.0"
   }
 }

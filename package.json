@@ -1,0 +1,23 @@
+{
+  "name": "ai-tracker-frontend",
+  "version": "1.0.0",
+  "description": "AI Tracker Dashboard - Real-time trend visualization",
+  "main": "script.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "deploy": "npx firebase deploy --only hosting --project ai-tracker-466821",
+    "serve": "python3 -m http.server 3000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.54.2"
+  }
+}

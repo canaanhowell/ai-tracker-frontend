@@ -1,0 +1,201 @@
+# Playwright Testing Setup
+
+## Overview
+This document outlines the Playwright testing setup for the frontend dashboard to ensure visual and functional quality before deployment.
+
+## Installation
+
+### 1. Install Playwright
+```bash
+npm install --save-dev @playwright/test
+npx playwright install
+```
+
+### 2. System Dependencies (if needed)
+```bash
+sudo npx playwright install-deps
+```
+
+## Configuration
+
+### playwright.config.js
+```javascript
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+  webServer: {
+    command: 'python3 -m http.server 3000',
+    port: 3000,
+    reuseExistingServer: !process.env.CI,
+  },
+});
+```
+
+## Test Suite
+
+### Dashboard Layout Tests (`tests/dashboard.spec.js`)
+
+The test suite covers:
+
+1. **Top Bar Components**
+   - Time filter buttons (7d, 30d, 90d)
+   - Category dropdown with proper options
+   - Default active states
+
+2. **Layout Structure**
+   - Two-column grid layout (1:2 ratio)
+   - Left column: ranking table
+   - Right column: performance chart
+
+3. **Data Display**
+   - Ranking table with proper headers and data
+   - Chart canvas and legend components
+   - Proper data visualization
+
+4. **Interactivity**
+   - Time filter button switching
+   - Category dropdown functionality
+   - Chart legend interactions
+
+5. **Responsive Design**
+   - Mobile viewport testing
+   - Element visibility across screen sizes
+
+6. **Visual Testing**
+   - Full page screenshots
+   - Component-specific screenshots
+   - Visual regression testing
+
+## Running Tests
+
+### Local Testing
+```bash
+# Run all tests
+npx playwright test
+
+# Run with headed browser (if display available)
+npx playwright test --headed
+
+# Run specific test file
+npx playwright test tests/dashboard.spec.js
+
+# Generate test report
+npx playwright show-report
+```
+
+### CI/CD Integration
+```bash
+# Run in headless mode (default)
+npx playwright test
+
+# Run with retries in CI
+CI=true npx playwright test
+```
+
+## Screenshots
+
+Test screenshots are saved to `tests/screenshots/`:
+- `dashboard-full.png` - Complete dashboard view
+- `topbar.png` - Top navigation bar
+- `dashboard-content.png` - Main content area
+
+## Issues Found and Fixed
+
+### Mobile Responsive CSS Issue
+**Problem**: CSS media queries referenced old class names after UI refactor
+**Solution**: Updated mobile responsive styles to use new class names:
+- `.filter-buttons` → `.filter-controls`
+- `.filter-btn` → `.time-btn`
+- Added proper mobile styling for dropdown
+
+**Fixed in**: `styles.css` lines 293-332
+
+### Layout Improvements
+- Fixed mobile layout stacking (vertical filter controls)
+- Adjusted button sizing for mobile devices
+- Improved dropdown responsiveness
+
+## Best Practices
+
+1. **Always test before deploying**
+   ```bash
+   npx playwright test && npm run deploy
+   ```
+
+2. **Visual regression testing**
+   - Take screenshots during tests
+   - Compare against baseline images
+   - Review visual changes before deployment
+
+3. **Cross-browser testing**
+   - Test on Chrome, Firefox, Safari
+   - Verify responsive behavior
+   - Check interactive elements
+
+4. **Accessibility testing**
+   - Keyboard navigation
+   - Screen reader compatibility
+   - Color contrast validation
+
+## Troubleshooting
+
+### System Dependencies Missing
+If you see browser dependency errors:
+```bash
+sudo npx playwright install-deps
+```
+
+### Port Already in Use
+If port 3000 is busy:
+```bash
+# Kill process on port 3000
+lsof -ti:3000 | xargs kill -9
+
+# Or use different port in config
+```
+
+### Headless Mode Issues
+In Docker/WSL environments without display:
+```bash
+# Force headless mode
+PLAYWRIGHT_HEADLESS=true npx playwright test
+```
+
+## Future Enhancements
+
+1. **Performance Testing**
+   - Load time measurements
+   - Chart rendering performance
+   - Memory usage monitoring
+
+2. **API Integration Testing**
+   - Mock data endpoints
+   - Real-time data updates
+   - Error handling scenarios
+
+3. **Advanced Visual Testing**
+   - Cross-browser screenshot comparison
+   - Automated visual diff detection
+   - Responsive breakpoint testing
+
+## Resources
+- [Playwright Documentation](https://playwright.dev/)
+- [Testing Best Practices](https://playwright.dev/docs/best-practices)
+- [Visual Testing Guide](https://playwright.dev/docs/test-screenshots)

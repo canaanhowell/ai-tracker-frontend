@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="filter-controls">
+            <!-- Time Filter Buttons -->
+            <div class="time-filters">
+                <button class="time-btn active" data-period="new">New</button>
+                <button class="time-btn" data-period="30d">30d</button>
+                <button class="time-btn" data-period="90d">90d</button>
+            </div>
+            
+            <!-- Platform Toggle Buttons -->
+            <div class="platform-filters">
+                <button class="platform-btn active" data-platform="reddit">Reddit</button>
+                <button class="platform-btn active" data-platform="youtube">YouTube</button>
+            </div>
+            
+            <!-- Category Dropdown -->
+            <div class="category-dropdown">
+                <button class="dropdown-toggle">
+                    <span class="dropdown-label">All Categories</span>
+                    <svg class="dropdown-icon" width="12" height="12" viewBox="0 0 12 12">
+                        <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="2" fill="none"/>
+                    </svg>
+                </button>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item active" data-category="all">All Categories</div>
+                    <div class="dropdown-item" data-category="ai_chatbots">AI Chatbots</div>
+                    <div class="dropdown-item" data-category="ai_coding_agents">AI Coding Agents</div>
+                    <div class="dropdown-item" data-category="ai_companions">AI Companions</div>
+                    <div class="dropdown-item" data-category="ai_media_generation">AI Media Generation</div>
+                    <div class="dropdown-item" data-category="automation">Automation</div>
+                    <div class="dropdown-item" data-category="devices">Devices</div>
+                    <div class="dropdown-item" data-category="general_ai">General AI</div>
+                    <div class="dropdown-item" data-category="health_and_fitness">Health & Fitness</div>
+                    <div class="dropdown-item" data-category="marketing">Marketing</div>
+                    <div class="dropdown-item" data-category="productivity">Productivity</div>
+                    <div class="dropdown-item" data-category="robots">Robots</div>
+                    <div class="dropdown-item" data-category="social_media">Social Media</div>
+                    <div class="dropdown-item" data-category="website_builder">Website Builder</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard">
+        <!-- Left Column - Ranking Table -->
+        <div class="left-column">
+            <div class="card">
+                <h2 class="card-title">Rankings</h2>
+                <div class="ranking-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Post Count</th>
+                                <th>Velocity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Chart -->
+        <div class="right-column">
+            <div class="card">
+                <div class="chart-header">
+                    <h2 class="card-title">Performance Chart</h2>
+                    <div class="chart-legend">
+                        <!-- Legend will be populated dynamically -->
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="firebase-config.js"></script>
+    <script src="data-service.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

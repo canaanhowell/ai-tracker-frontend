@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Minimal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .topbar {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: 0.5rem;
+            border-bottom: 1px solid #2a2a2a;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-start;
+            align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        
+        .time-filters {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .time-btn {
+            background: #1f1f1f;
+            border: 1px solid #2a2a2a;
+            color: #999;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .time-btn.active {
+            background: #ff6b35;
+            color: #000;
+        }
+        
+        .platform-filters {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .platform-btn {
+            background: #1f1f1f;
+            border: 1px solid #2a2a2a;
+            color: #999;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .platform-btn.active {
+            background: #ff6b35;
+            color: #000;
+        }
+        
+        .filter-label {
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        
+        .category-dropdown {
+            position: relative;
+        }
+        
+        .dropdown-toggle {
+            background: #1f1f1f;
+            border: 1px solid #2a2a2a;
+            color: #999;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            min-width: 200px;
+            z-index: 100;
+        }
+        
+        .dropdown-menu.open {
+            display: block;
+        }
+        
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: #999;
+            padding: 0.5rem;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            background: #2a2a2a;
+            color: #fff;
+        }
+        
+        .dropdown-item.active {
+            background: #ff6b35;
+            color: #000;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(500px, 1fr) 2fr;
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 100vw;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: auto;
+        }
+        
+        .left-column,
+        .right-column {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .left-column {
+            min-width: 500px;
+        }
+        
+        .chart-container {
+            position: relative;
+            background: #0f0f0f;
+            border-radius: 8px;
+            padding: 0.25rem 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        #performanceChart {
+            max-width: 100%;
+            height: 100%;
+        }
+        
+        .card {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid #2a2a2a;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-title {
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+        
+        .ranking-table {
+            width: 100%;
+            overflow-x: auto;
+            flex: 1;
+        }
+        
+        table {
+            width: 100%;
+            min-width: 450px;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 8px 3px;
+            text-align: center;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        
+        th {
+            background: #2a2a2a;
+            color: #ff6b35;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        td {
+            color: #fff;
+            font-size: 0.75rem;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .dashboard {
+                display: block;
+                padding: 0.5rem;
+                gap: 1rem;
+            }
+            
+            .left-column,
+            .right-column {
+                margin-bottom: 1rem;
+                width: 100%;
+            }
+            
+            .card {
+                padding: 0.5rem;
+            }
+            
+            .chart-container {
+                height: 250px;
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="filter-controls">
+            <div class="time-filters">
+                <span class="filter-label">Period:</span>
+                <button class="time-btn" data-period="7d">7d</button>
+                <button class="time-btn active" data-period="30d">30d</button>
+                <button class="time-btn" data-period="90d">90d</button>
+            </div>
+            
+            <div class="platform-filters">
+                <span class="filter-label">Platform:</span>
+                <button class="platform-btn active" data-platform="all">All</button>
+                <button class="platform-btn" data-platform="reddit">Reddit</button>
+                <button class="platform-btn" data-platform="youtube">YouTube</button>
+            </div>
+            
+            <div class="category-dropdown">
+                <button class="dropdown-toggle">
+                    <span>All Categories</span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </button>
+                <div class="dropdown-menu">
+                    <button class="dropdown-item active" data-category="all">All Categories</button>
+                    <!-- Categories will be dynamically loaded from Firebase -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="left-column">
+            <div class="card">
+                <h2 class="card-title">Rankings</h2>
+                <div class="ranking-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Post Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 20px; color: #999;">Loading rankings data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 1rem;">
+                <h2 class="card-title">Trending</h2>
+                <div class="ranking-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 20px; color: #999;">Loading trending data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="right-column">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 class="card-title" style="margin: 0;">Top 3 Products Performance</h2>
+                    <div class="chart-legend" id="chartLegend" style="display: flex; gap: 1rem; font-size: 0.75rem;">
+                        <!-- Legend will be dynamically updated -->
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Dropdown functionality (for static elements, dynamic ones handled separately)
+        const dropdownToggle = document.querySelector('.dropdown-toggle');
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+        
+        dropdownToggle.addEventListener('click', () => {
+            dropdownMenu.classList.toggle('open');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.category-dropdown')) {
+                dropdownMenu.classList.remove('open');
+            }
+        });
+        
+        // Handle static dropdown items (like "All Categories")
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('dropdown-item')) {
+                handleCategorySelection(e);
+            }
+        });
+        
+        // Time filter functionality
+        const timeButtons = document.querySelectorAll('.time-btn');
+        timeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                timeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Reload rankings data with new time filter
+                if (window.dataService) {
+                    loadRankingsData();
+                }
+            });
+        });
+        
+        // Platform filter functionality (radio button behavior)
+        const platformButtons = document.querySelectorAll('.platform-btn');
+        platformButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all platform buttons
+                platformButtons.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                // Reload rankings data with new platform filter
+                if (window.dataService) {
+                    loadRankingsData();
+                }
+            });
+        });
+        
+        // Match heights of parallel elements
+        function matchHeights() {
+            // Get left side elements
+            const rankingsCard = document.querySelector('.left-column .card:first-child');
+            const trendingCard = document.querySelector('.left-column .card:last-child');
+            
+            // Get right side performance card
+            const performanceCard = document.querySelector('.right-column .card');
+            const perfChartContainer = performanceCard?.querySelector('.chart-container');
+            
+            if (rankingsCard && trendingCard && performanceCard && perfChartContainer) {
+                // Calculate combined height of both left cards plus the gap between them
+                const rankingsHeight = rankingsCard.offsetHeight;
+                const trendingHeight = trendingCard.offsetHeight;
+                const gapBetweenCards = 16; // 1rem margin-top on trending card
+                const totalLeftHeight = rankingsHeight + trendingHeight + gapBetweenCards;
+                
+                // Set performance card to match total left column height
+                performanceCard.style.height = totalLeftHeight + 'px';
+                
+                // Calculate available height for chart (card height - padding - title - margins)
+                const titleHeight = performanceCard.querySelector('.card-title')?.offsetHeight || 0;
+                const cardPadding = 32; // 1rem top + 1rem bottom
+                const titleMargin = 16; // 1rem margin bottom
+                const chartPadding = 8; // 0.25rem top + 0.25rem bottom for chart container
+                const availableHeight = totalLeftHeight - cardPadding - titleHeight - titleMargin - chartPadding - 20; // Extra margin
+                
+                perfChartContainer.style.height = availableHeight + 'px';
+            }
+            
+            // Resize chart to fit its container
+            if (window.performanceChart) {
+                window.performanceChart.resize();
+            }
+        }
+        
+        // Call on load and resize
+        window.addEventListener('load', () => {
+            setTimeout(matchHeights, 100); // Small delay to ensure charts are rendered
+        });
+        window.addEventListener('resize', matchHeights);
+        
+        // Initialize chart with empty data
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        window.performanceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#999' },
+                        grid: { color: '#333' }
+                    },
+                    y: {
+                        ticks: { color: '#999' },
+                        grid: { color: '#333' },
+                        title: {
+                            display: true,
+                            text: 'Activity Level',
+                            color: '#999',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chart colors for the top 3 products
+        const chartColors = [
+            '#ff6b35',  // Primary orange
+            '#ff8f65',  // Lighter orange
+            '#ffb399'   // Lightest orange
+        ];
+
+        // Generate appropriate time labels with actual dates based on selected period
+        function generateTimeLabels(timePeriod) {
+            const now = new Date();
+            const labels = [];
+            
+            if (timePeriod === '7') {
+                // For 7 days, show daily intervals
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setDate(date.getDate() - i);
+                    
+                    // Format as "Mon Jan 15" for 7d view
+                    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                    const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    labels.push(`${dayName} ${monthName} ${day}`);
+                }
+            } else if (timePeriod === '30') {
+                // For 30 days, show 5 weekly intervals
+                for (let i = 4; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setDate(date.getDate() - (i * 7));
+                    
+                    // Format as "Jan 15" or "Dec 25"
+                    const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    labels.push(`${monthName} ${day}`);
+                }
+            } else if (timePeriod === '90') {
+                // For 90 days, show 4 monthly intervals
+                for (let i = 3; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setMonth(date.getMonth() - i);
+                    
+                    // Format as "Oct 2024" or "Jan 2025"
+                    const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                    const year = date.getFullYear();
+                    labels.push(`${monthName} ${year}`);
+                }
+            } else {
+                // Default fallback - 6 daily intervals
+                for (let i = 5; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setDate(date.getDate() - i);
+                    
+                    // Format as "Jan 15" for recent days
+                    const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    labels.push(`${monthName} ${day}`);
+                }
+            }
+            
+            return labels;
+        }
+
+        // Generate trend data based on actual Firebase metrics (velocity, momentum, etc.)
+        function generateTrendDataFromMetrics(product, timePeriod = '30') {
+            const labels = generateTimeLabels(timePeriod);
+            const numDataPoints = labels.length;
+            
+            // Use actual metrics from Firebase data
+            const velocity = product.velocity || 0;
+            const momentum = product.momentum || product.acceleration || 0;
+            const currentValue = product.post_count || product.postCount || product.videoCount || velocity;
+            
+            // Calculate realistic historical trend based on velocity and momentum
+            const baseValue = Math.max(1, currentValue);
+            
+            // Work backwards from current value using velocity and momentum
+            let previousValue = baseValue;
+            const trendData = [baseValue]; // Start with current value
+            
+            // Generate historical data points based on time period
+            const periodDays = parseInt(timePeriod);
+            const intervalDays = Math.floor(periodDays / (numDataPoints - 1)); // Days between each data point
+            
+            for (let i = 1; i < numDataPoints; i++) {
+                // Use velocity to determine the rate of change per interval
+                const intervalChange = (velocity * intervalDays) / 7; // Adjust velocity for interval length
+                const momentumEffect = momentum * 0.1 * i; // Momentum increases effect over time
+                
+                previousValue = Math.max(1, Math.round(previousValue - intervalChange - momentumEffect));
+                trendData.unshift(previousValue); // Add to beginning of array
+            }
+            
+            return { labels, data: trendData };
+        }
+
+        // Update chart with top 3 products from rankings table
+        function updatePerformanceChart(rankingsData) {
+            if (!window.performanceChart || !rankingsData || rankingsData.length === 0) {
+                return;
+            }
+
+            // Get current time period from active button
+            const currentTimePeriod = getCurrentTimeWindow();
+            
+            // Get top 3 products
+            const top3Products = rankingsData.slice(0, 3);
+            
+            console.log(`📊 Updating chart with top 3 products for ${currentTimePeriod}d period:`, top3Products.map(p => ({
+                name: p.name,
+                velocity: p.velocity,
+                momentum: p.momentum,
+                postCount: p.post_count || p.postCount || p.videoCount
+            })));
+            
+            // Generate trend data with appropriate time period
+            let chartLabels = [];
+            const datasets = top3Products.map((product, index) => {
+                const trendResult = generateTrendDataFromMetrics(product, currentTimePeriod);
+                
+                // Use labels from the first product (they'll all be the same)
+                if (index === 0) {
+                    chartLabels = trendResult.labels;
+                }
+                
+                console.log(`📈 ${cleanText(product.name)} (${currentTimePeriod}d) trend data:`, trendResult.data);
+                
+                return {
+                    label: cleanText(product.name),
+                    data: trendResult.data,
+                    borderColor: chartColors[index],
+                    backgroundColor: chartColors[index].replace(')', ', 0.1)').replace('rgb', 'rgba').replace('#', 'rgba(' + 
+                        parseInt(chartColors[index].slice(1,3), 16) + ',' + 
+                        parseInt(chartColors[index].slice(3,5), 16) + ',' + 
+                        parseInt(chartColors[index].slice(5,7), 16) + ', 0.1)'),
+                    tension: 0,  // Straight lines instead of curves
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                };
+            });
+
+            // Update chart data
+            window.performanceChart.data.labels = chartLabels;
+            window.performanceChart.data.datasets = datasets;
+            window.performanceChart.update();
+
+            // Update legend
+            updateChartLegend(top3Products);
+            
+            console.log(`✅ Chart updated with ${chartLabels.length} data points for ${currentTimePeriod}d period`);
+        }
+
+        // Update the chart legend
+        function updateChartLegend(products) {
+            const legendContainer = document.getElementById('chartLegend');
+            if (!legendContainer) return;
+
+            legendContainer.innerHTML = products.map((product, index) => `
+                <span style="color: #fff;">
+                    <span style="display: inline-block; width: 10px; height: 10px; background: ${chartColors[index]}; margin-right: 6px;"></span>
+                    ${cleanText(product.name)}
+                </span>
+            `).join('');
+        }
+
+    </script>
+
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase config -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Data service -->
+    <script src="data-service.js?v=20250806-filter-all"></script>
+    
+    <!-- Data loading and UI connection -->
+    <script>
+        let dataService;
+        
+        // Text cleaning function to format names and categories
+        function cleanText(text) {
+            if (!text) return '';
+            
+            return text
+                .replace(/_/g, ' ')  // Replace underscores with spaces
+                .split(' ')         // Split into words
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())  // Capitalize each word
+                .join(' ');         // Join back together
+        }
+        
+        // Initialize data service when Firebase is ready
+        window.addEventListener('load', async () => {
+            try {
+                // Clear any existing chart data to prevent cache issues
+                if (window.performanceChart) {
+                    console.log('🧹 Clearing existing chart data...');
+                    window.performanceChart.data.labels = [];
+                    window.performanceChart.data.datasets = [];
+                    window.performanceChart.update();
+                    
+                    // Clear legend
+                    const legendContainer = document.getElementById('chartLegend');
+                    if (legendContainer) {
+                        legendContainer.innerHTML = '<span style="color: #999;">Loading chart data...</span>';
+                    }
+                }
+                
+                // Wait for Firebase to fully initialize
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Force reload DataService class by creating new instance
+                console.log('🔄 Initializing clean DataService instance...');
+                dataService = new DataService();
+                window.dataService = dataService;
+                
+                // Debug: Check what methods are available
+                const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(dataService));
+                console.log('✅ DataService methods available:', methods);
+                console.log('🔍 fetchCategoriesList available:', typeof dataService.fetchCategoriesList);
+                console.log('🔍 fetchTopThisMonth available:', typeof dataService.fetchTopThisMonth);
+                console.log('🔍 fetchYoutubeDataSimple available:', typeof dataService.fetchYoutubeDataSimple);
+                
+                // Load categories and populate dropdown
+                await loadCategories();
+                
+                // Load trending data for the trending table
+                await loadTrendingData();
+                
+                // Load initial rankings data based on current filters
+                await loadRankingsData();
+                
+            } catch (error) {
+                console.error('Failed to initialize data service:', error);
+            }
+        });
+        
+        // Show no data message in table
+        function showNoDataMessage(tableType) {
+            let tableBody, message;
+            
+            if (tableType === 'rankings') {
+                tableBody = document.querySelector('.card:first-child tbody');
+                message = 'No rankings data available for this selection';
+                
+                // Also clear the performance chart
+                clearPerformanceChart();
+            } else if (tableType === 'trending') {
+                tableBody = document.querySelector('.card:last-child tbody');
+                message = 'No trending data available';
+            }
+            
+            if (tableBody) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">${message}</td></tr>`;
+            }
+        }
+
+        // Clear the performance chart when no data is available
+        function clearPerformanceChart() {
+            if (window.performanceChart) {
+                // Use appropriate labels for current time period even when empty
+                const currentTimePeriod = getCurrentTimeWindow();
+                const emptyLabels = generateTimeLabels(currentTimePeriod);
+                
+                window.performanceChart.data.labels = emptyLabels;
+                window.performanceChart.data.datasets = [];
+                window.performanceChart.update();
+                
+                // Clear legend
+                const legendContainer = document.getElementById('chartLegend');
+                if (legendContainer) {
+                    legendContainer.innerHTML = '<span style="color: #999;">No data to display</span>';
+                }
+            }
+        }
+        
+        // Load trending data from "Top This Week" document
+        async function loadTrendingData() {
+            try {
+                console.log('Loading trending data...');
+                const trendingData = await dataService.fetchTopThisMonth();
+                
+                if (trendingData.length > 0) {
+                    populateTrendingTable(trendingData);
+                    console.log('Trending data loaded successfully');
+                } else {
+                    console.warn('No trending data found');
+                    showNoDataMessage('trending');
+                }
+            } catch (error) {
+                console.error('Error loading trending data:', error);
+            }
+        }
+        
+        // Populate the trending table with live data
+        function populateTrendingTable(data) {
+            const trendingTableBody = document.querySelector('.card:last-child tbody');
+            if (!trendingTableBody) {
+                console.error('Trending table body not found');
+                return;
+            }
+            
+            // Clear existing rows
+            trendingTableBody.innerHTML = '';
+            
+            // Add new rows (limit to top 5)
+            const topItems = data.slice(0, 5);
+            topItems.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.rank}</td>
+                    <td>${cleanText(item.name)}</td>
+                    <td>${cleanText(item.category)}</td>
+                    <td>${item.score}</td>
+                `;
+                trendingTableBody.appendChild(row);
+            });
+        }
+        
+        // Fallback categories in case Firebase fails
+        const fallbackCategories = [
+            { id: 'ai_chatbots', name: 'AI Chatbots' },
+            { id: 'technology', name: 'Technology' },
+            { id: 'gaming', name: 'Gaming' },
+            { id: 'finance', name: 'Finance' },
+            { id: 'health', name: 'Health' }
+        ];
+        
+        // Load categories from Firebase and populate dropdown
+        async function loadCategories() {
+            try {
+                console.log('🔄 Loading categories from Firebase...');
+                
+                if (!dataService) {
+                    console.error('❌ DataService not initialized yet');
+                    console.log('🔄 Using fallback categories...');
+                    populateCategoriesDropdown(fallbackCategories);
+                    return;
+                }
+                
+                const categories = await dataService.fetchCategoriesList();
+                console.log('📋 Categories fetched:', categories);
+                
+                if (categories && categories.length > 0) {
+                    populateCategoriesDropdown(categories);
+                    console.log('✅ Categories loaded successfully:', categories.length, 'categories');
+                } else {
+                    console.warn('⚠️ No categories found from Firebase, using fallback categories');
+                    populateCategoriesDropdown(fallbackCategories);
+                }
+            } catch (error) {
+                console.error('❌ Error loading categories:', error);
+                console.error('Error details:', error.message);
+                console.log('🔄 Using fallback categories due to error...');
+                populateCategoriesDropdown(fallbackCategories);
+            }
+        }
+        
+        // Populate the categories dropdown with live data
+        function populateCategoriesDropdown(categories) {
+            console.log('🔄 Populating dropdown with categories:', categories);
+            
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+            if (!dropdownMenu) {
+                console.error('❌ Categories dropdown menu not found');
+                return;
+            }
+            
+            console.log('📋 Current dropdown content before clearing:', dropdownMenu.innerHTML);
+            
+            // Clear existing items (except "All Categories")
+            dropdownMenu.innerHTML = `<button class="dropdown-item active" data-category="all">All Categories</button>`;
+            
+            // Filter out unwanted categories
+            const excludedCategories = ['reddit', 'ai test category', 'all reddit', 'all categories'];
+            const filteredCategories = categories.filter(category => {
+                const categoryName = category.name.toLowerCase();
+                const categoryId = category.id.toLowerCase();
+                return !excludedCategories.includes(categoryName) && !excludedCategories.includes(categoryId);
+            });
+            
+            console.log(`🔍 Filtered out ${categories.length - filteredCategories.length} unwanted categories`);
+            console.log('📋 Excluded categories:', excludedCategories);
+            
+            // Add filtered categories from Firebase
+            filteredCategories.forEach((category, index) => {
+                console.log(`➕ Adding category ${index + 1}:`, category);
+                
+                const item = document.createElement('button');
+                item.className = 'dropdown-item';
+                item.setAttribute('data-category', category.id);
+                item.textContent = category.name;
+                
+                // Add click handler
+                item.addEventListener('click', handleCategorySelection);
+                
+                dropdownMenu.appendChild(item);
+            });
+            
+            console.log(`✅ Added ${filteredCategories.length} categories to dropdown`);
+            console.log('📋 Final dropdown content:', dropdownMenu.innerHTML);
+        }
+        
+        // Handle category selection
+        function handleCategorySelection(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            console.log('🎯 Category selection triggered!');
+            const selectedCategory = event.target.dataset.category;
+            const categoryText = event.target.textContent;
+            console.log(`📂 Selected category: "${selectedCategory}" (${categoryText})`);
+            
+            // Update button text
+            const dropdownToggle = document.querySelector('.dropdown-toggle span');
+            if (dropdownToggle) {
+                dropdownToggle.textContent = categoryText;
+            }
+            
+            // Update active state
+            const dropdownItems = document.querySelectorAll('.dropdown-item');
+            dropdownItems.forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Close dropdown
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+            if (dropdownMenu) {
+                dropdownMenu.classList.remove('open');
+            }
+            
+            // Reload rankings data with new category filter
+            console.log('🔄 About to reload rankings data...');
+            if (window.dataService) {
+                loadRankingsData();
+            } else {
+                console.error('❌ dataService not available for reloading rankings');
+            }
+        }
+        
+        // Load rankings data based on current filters
+        async function loadRankingsData() {
+            try {
+                const currentCategory = getCurrentCategory();
+                const currentTimeWindow = getCurrentTimeWindow();
+                const currentPlatform = getCurrentPlatform();
+                
+                console.log(`Loading rankings data - Category: ${currentCategory}, Time: ${currentTimeWindow}, Platform: ${currentPlatform}`);
+                
+                let rankingsData = [];
+                
+                // Fetch data based on selected platform
+                switch (currentPlatform) {
+                    case 'reddit':
+                        console.log('Fetching Reddit-only data...');
+                        rankingsData = await dataService.fetchRedditData(currentTimeWindow, currentCategory);
+                        break;
+                    case 'youtube':
+                        console.log('Fetching YouTube-only data...');
+                        rankingsData = await dataService.fetchYoutubeDataSimple(currentTimeWindow, currentCategory);
+                        break;
+                    case 'all':
+                    default:
+                        console.log('Fetching combined data from all platforms...');
+                        rankingsData = await dataService.fetchCombinedData(currentTimeWindow, currentCategory);
+                        break;
+                }
+                
+                if (rankingsData.length > 0) {
+                    populateRankingsTable(rankingsData);
+                    console.log(`Rankings data loaded successfully - ${rankingsData.length} items from ${currentPlatform} platform(s)`);
+                } else {
+                    console.warn(`No rankings data found for platform: ${currentPlatform}`);
+                    showNoDataMessage('rankings');
+                }
+            } catch (error) {
+                console.error('Error loading rankings data:', error);
+            }
+        }
+        
+        // Populate the rankings table with filtered data
+        function populateRankingsTable(data) {
+            const rankingsTableBody = document.querySelector('.card:first-child tbody');
+            if (!rankingsTableBody) {
+                console.error('Rankings table body not found');
+                return;
+            }
+            
+            // Clear existing rows
+            rankingsTableBody.innerHTML = '';
+            
+            // Add new rows (limit to top 5)
+            const topItems = data.slice(0, 5);
+            topItems.forEach((item, index) => {
+                const row = document.createElement('tr');
+                
+                // Determine the appropriate count based on data source
+                let count = 0;
+                if (item.post_count !== undefined) {
+                    count = item.post_count; // Combined data
+                } else if (item.postCount !== undefined) {
+                    count = item.postCount; // Reddit data
+                } else if (item.videoCount !== undefined) {
+                    count = item.videoCount; // YouTube data
+                } else if (item.redditPosts !== undefined) {
+                    count = item.redditPosts; // Legacy combined data
+                } else if (item.youtubeVideos !== undefined) {
+                    count = item.youtubeVideos; // Legacy combined data
+                }
+                
+                row.innerHTML = `
+                    <td>${item.rank}</td>
+                    <td>${cleanText(item.name)}</td>
+                    <td>${cleanText(item.category)}</td>
+                    <td>${count}</td>
+                `;
+                rankingsTableBody.appendChild(row);
+            });
+            
+            // Update the performance chart with the new rankings data
+            updatePerformanceChart(data);
+        }
+        
+        // Get currently selected category
+        function getCurrentCategory() {
+            const activeItem = document.querySelector('.dropdown-item.active');
+            return activeItem ? activeItem.dataset.category : 'all';
+        }
+        
+        // Get currently selected time window
+        function getCurrentTimeWindow() {
+            const activeButton = document.querySelector('.time-btn.active');
+            const period = activeButton ? activeButton.dataset.period : '30d';
+            return period.replace('d', ''); // Convert '30d' to '30'
+        }
+        
+        // Get currently selected platform
+        function getCurrentPlatform() {
+            const activeButton = document.querySelector('.platform-btn.active');
+            return activeButton ? activeButton.dataset.platform : 'all';
+        }
+    </script>
+</body>
+</html>

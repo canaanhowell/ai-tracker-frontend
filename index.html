@@ -237,6 +237,26 @@
             color: #fff;
             font-size: 0.75rem;
         }
+        
+        .our-pick-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #ff6b35 100%);
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid #ff6b35;
+            margin-bottom: 1rem;
+        }
+        
+        .our-pick-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .our-pick-content {
+            color: #fff;
+            font-size: 0.9rem;
+        }
 
         @media (max-width: 900px) {
             .dashboard {
@@ -353,6 +373,14 @@
         </div>
         
         <div class="right-column">
+            <div class="our-pick-card">
+                <h3 class="our-pick-title" id="ourPickTitle">Our Pick: Best All Categories</h3>
+                <div class="our-pick-content" id="ourPickContent">
+                    <!-- Content will be dynamically populated -->
+                    <span style="color: #999;">Loading recommendation...</span>
+                </div>
+            </div>
+            
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h2 class="card-title" style="margin: 0;">Top 3 Products Performance</h2>
@@ -749,6 +777,12 @@
                 
                 // Also clear the performance chart
                 clearPerformanceChart();
+                
+                // Clear "Our Pick" content
+                const ourPickContent = document.getElementById('ourPickContent');
+                if (ourPickContent) {
+                    ourPickContent.innerHTML = '<span style="color: #999;">No data available</span>';
+                }
             } else if (tableType === 'trending') {
                 tableBody = document.querySelector('.card:last-child tbody');
                 message = 'No trending data available';
@@ -921,6 +955,9 @@
                 dropdownToggle.textContent = categoryText;
             }
             
+            // Update "Our Pick" title with the selected category
+            updateOurPickTitle(categoryText);
+            
             // Update active state
             const dropdownItems = document.querySelectorAll('.dropdown-item');
             dropdownItems.forEach(item => item.classList.remove('active'));
@@ -938,6 +975,14 @@
                 loadRankingsData();
             } else {
                 console.error('❌ dataService not available for reloading rankings');
+            }
+        }
+        
+        // Update the "Our Pick" title based on selected category
+        function updateOurPickTitle(categoryName) {
+            const ourPickTitle = document.getElementById('ourPickTitle');
+            if (ourPickTitle) {
+                ourPickTitle.textContent = `Our Pick: Best ${categoryName}`;
             }
         }
         
@@ -1022,6 +1067,42 @@
             
             // Update the performance chart with the new rankings data
             updatePerformanceChart(data);
+            
+            // Update "Our Pick" with the top-ranked item
+            updateOurPickContent(data[0]);
+        }
+        
+        // Update the "Our Pick" content with the top-ranked product
+        function updateOurPickContent(topProduct) {
+            const ourPickContent = document.getElementById('ourPickContent');
+            if (!ourPickContent || !topProduct) return;
+            
+            // Extract the relevant count
+            let count = 0;
+            if (topProduct.post_count !== undefined) {
+                count = topProduct.post_count;
+            } else if (topProduct.postCount !== undefined) {
+                count = topProduct.postCount;
+            } else if (topProduct.videoCount !== undefined) {
+                count = topProduct.videoCount;
+            } else if (topProduct.redditPosts !== undefined) {
+                count = topProduct.redditPosts;
+            } else if (topProduct.youtubeVideos !== undefined) {
+                count = topProduct.youtubeVideos;
+            }
+            
+            // Get the current platform
+            const platform = getCurrentPlatform();
+            const countLabel = platform === 'youtube' ? 'videos' : 'posts';
+            
+            ourPickContent.innerHTML = `
+                <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem;">
+                    ${cleanText(topProduct.name)}
+                </div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">
+                    ${count.toLocaleString()} ${countLabel} • Rank #1
+                </div>
+            `;
         }
         
         // Get currently selected category

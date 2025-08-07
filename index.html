@@ -3,7 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Minimal</title>
+    <title>Best AI Tools Rankings - Live Dashboard</title>
+    <meta name="description" content="Real-time rankings of the best AI tools based on user engagement, post counts, and trending scores across platforms.">
+    <meta property="og:title" content="Best AI Tools Rankings - Live Dashboard">
+    <meta property="og:description" content="Real-time rankings of the best AI tools based on user engagement, post counts, and trending scores across platforms.">
+    <meta property="og:type" content="website">
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "AI Tools Rankings Dashboard",
+        "description": "Real-time dashboard showing rankings and trends of AI tools based on user engagement and performance metrics",
+        "url": "https://ai-tracker-466821.web.app",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web Browser"
+    }
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -329,8 +346,8 @@
 
     <div class="dashboard">
         <div class="left-column">
-            <div class="card">
-                <h2 class="card-title">Rankings</h2>
+            <div class="card" itemscope itemtype="https://schema.org/ItemList">
+                <h2 class="card-title" itemprop="name">Rankings</h2>
                 <div class="ranking-table">
                     <table>
                         <thead>
@@ -338,7 +355,7 @@
                                 <th>Rank</th>
                                 <th>Name</th>
                                 <th>Category</th>
-                                <th>Post Count</th>
+                                <th id="ranking-metric-header">Score</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -350,8 +367,8 @@
                 </div>
             </div>
             
-            <div class="card" style="margin-top: 1rem;">
-                <h2 class="card-title">Trending</h2>
+            <div class="card" style="margin-top: 1rem;" itemscope itemtype="https://schema.org/ItemList">
+                <h2 class="card-title" itemprop="name">Trending</h2>
                 <div class="ranking-table">
                     <table>
                         <thead>
@@ -373,11 +390,22 @@
         </div>
         
         <div class="right-column">
-            <div class="our-pick-card">
-                <h3 class="our-pick-title" id="ourPickTitle">Our Pick: Best All Categories</h3>
-                <div class="our-pick-content" id="ourPickContent">
-                    <!-- Content will be dynamically populated -->
-                    <span style="color: #999;">Loading recommendation...</span>
+            <div class="our-pick-card" itemscope itemtype="https://schema.org/Product">
+                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <img id="ourPickThumbnail" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%23ff6b35'/%3E%3Ctext x='24' y='28' text-anchor='middle' fill='white' font-family='Arial' font-size='16' font-weight='bold'%3E%23%3C/text%3E%3C/svg%3E" alt="Top AI Tool" style="width: 48px; height: 48px; border-radius: 8px; flex-shrink: 0;" itemprop="image">
+                    <div style="flex: 1;">
+                        <div style="font-size: 0.85rem; color: #ff6b35; font-weight: 500; margin-bottom: 0.25rem;" id="ourPickCategory">Best All Categories</div>
+                        <h3 class="our-pick-title" id="ourPickTitle" itemprop="name" style="font-size: 1.1rem; margin-bottom: 0.5rem;">Our Pick: Loading...</h3>
+                        <div class="our-pick-content" id="ourPickStats" style="font-size: 0.8rem; opacity: 0.9; margin-bottom: 0.5rem;">
+                            Loading stats...
+                        </div>
+                        <div id="ourPickDescription" itemprop="description" style="font-size: 0.75rem; opacity: 0.8; line-height: 1.3;">
+                            Loading description...
+                        </div>
+                        <div id="ourPickUrl" style="margin-top: 0.5rem;">
+                            <!-- URL will be added dynamically -->
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -443,41 +471,65 @@
                 // Add active class to clicked button
                 btn.classList.add('active');
                 
-                // Reload rankings data with new platform filter
+                // Update table header and reload rankings data with new platform filter
+                updateRankingTableHeader();
                 if (window.dataService) {
                     loadRankingsData();
                 }
             });
         });
         
-        // Match heights of parallel elements
+        // Match heights with 1:2 ratio (Our Pick : Chart)  
         function matchHeights() {
+            console.log('🔧 Matching heights...');
+            
             // Get left side elements
             const rankingsCard = document.querySelector('.left-column .card:first-child');
             const trendingCard = document.querySelector('.left-column .card:last-child');
             
-            // Get right side performance card
+            // Get right side elements
+            const ourPickCard = document.querySelector('.our-pick-card');
             const performanceCard = document.querySelector('.right-column .card');
             const perfChartContainer = performanceCard?.querySelector('.chart-container');
             
-            if (rankingsCard && trendingCard && performanceCard && perfChartContainer) {
+            if (rankingsCard && trendingCard && ourPickCard && performanceCard && perfChartContainer) {
                 // Calculate combined height of both left cards plus the gap between them
                 const rankingsHeight = rankingsCard.offsetHeight;
                 const trendingHeight = trendingCard.offsetHeight;
                 const gapBetweenCards = 16; // 1rem margin-top on trending card
                 const totalLeftHeight = rankingsHeight + trendingHeight + gapBetweenCards;
                 
-                // Set performance card to match total left column height
-                performanceCard.style.height = totalLeftHeight + 'px';
+                console.log(`📏 Left heights: Rankings ${rankingsHeight}px + Trending ${trendingHeight}px + Gap ${gapBetweenCards}px = Total ${totalLeftHeight}px`);
+                
+                // Calculate heights for 1:2 ratio (Our Pick : Chart)
+                // Our Pick should be 1/3, Chart should be 2/3
+                const ourPickHeight = Math.floor(totalLeftHeight / 3);
+                const chartCardHeight = totalLeftHeight - ourPickHeight - 16; // 16px for gap between elements
+                
+                console.log(`🎯 Target heights: Our Pick ${ourPickHeight}px, Chart Card ${chartCardHeight}px`);
+                
+                // Set Our Pick card height
+                ourPickCard.style.height = ourPickHeight + 'px';
+                ourPickCard.style.display = 'flex';
+                ourPickCard.style.alignItems = 'center';
+                
+                // Set performance card height
+                performanceCard.style.height = chartCardHeight + 'px';
                 
                 // Calculate available height for chart (card height - padding - title - margins)
-                const titleHeight = performanceCard.querySelector('.card-title')?.offsetHeight || 0;
+                const titleElement = performanceCard.querySelector('h2.card-title');
+                const legendElement = performanceCard.querySelector('.chart-legend');
+                const titleHeight = titleElement ? titleElement.offsetHeight : 30;
+                const legendHeight = legendElement ? legendElement.offsetHeight : 20;
                 const cardPadding = 32; // 1rem top + 1rem bottom
-                const titleMargin = 16; // 1rem margin bottom
-                const chartPadding = 8; // 0.25rem top + 0.25rem bottom for chart container
-                const availableHeight = totalLeftHeight - cardPadding - titleHeight - titleMargin - chartPadding - 20; // Extra margin
+                const titleMargin = 16; // margin below title
+                const availableChartHeight = chartCardHeight - cardPadding - titleHeight - legendHeight - titleMargin - 20; // Extra margin
                 
-                perfChartContainer.style.height = availableHeight + 'px';
+                console.log(`📊 Chart container height: ${availableChartHeight}px (Card: ${chartCardHeight}px - Padding: ${cardPadding}px - Title: ${titleHeight}px - Legend: ${legendHeight}px - Margins: ${titleMargin + 20}px)`);
+                
+                perfChartContainer.style.height = Math.max(availableChartHeight, 200) + 'px'; // Minimum 200px
+            } else {
+                console.warn('⚠️ Some elements missing for height matching');
             }
             
             // Resize chart to fit its container
@@ -486,9 +538,30 @@
             }
         }
         
-        // Call on load and resize
+        // Call on load and resize, with periodic checks for data loading
         window.addEventListener('load', () => {
-            setTimeout(matchHeights, 100); // Small delay to ensure charts are rendered
+            setTimeout(matchHeights, 1000); // Longer delay to ensure data is loaded
+            
+            // Check periodically if tables have data and adjust heights
+            const heightCheckInterval = setInterval(() => {
+                const rankingsTable = document.querySelector('.left-column .card:first-child tbody');
+                const trendingTable = document.querySelector('.left-column .card:last-child tbody');
+                
+                if (rankingsTable && trendingTable) {
+                    const hasRankingsData = rankingsTable.children.length > 0 && 
+                                           !rankingsTable.textContent.includes('Loading');
+                    const hasTrendingData = trendingTable.children.length > 0 && 
+                                          !trendingTable.textContent.includes('Loading');
+                    
+                    if (hasRankingsData && hasTrendingData) {
+                        matchHeights();
+                        clearInterval(heightCheckInterval);
+                    }
+                }
+            }, 500);
+            
+            // Clear interval after 10 seconds to avoid infinite checking
+            setTimeout(() => clearInterval(heightCheckInterval), 10000);
         });
         window.addEventListener('resize', matchHeights);
         
@@ -1072,37 +1145,51 @@
             updateOurPickContent(data[0]);
         }
         
-        // Update the "Our Pick" content with the top-ranked product
+        // Update the "Our Pick" content with the top-ranked product (enhanced version)
         function updateOurPickContent(topProduct) {
-            const ourPickContent = document.getElementById('ourPickContent');
-            if (!ourPickContent || !topProduct) return;
+            const ourPickTitle = document.getElementById('ourPickTitle');
+            const ourPickStats = document.getElementById('ourPickStats');
+            const ourPickDescription = document.getElementById('ourPickDescription');
+            const ourPickUrl = document.getElementById('ourPickUrl');
+            const ourPickCategory = document.getElementById('ourPickCategory');
             
-            // Extract the relevant count
+            if (!ourPickTitle || !topProduct) return;
+            
+            // Extract the relevant count and determine metric type
             let count = 0;
+            let metricType = 'mentions';
             if (topProduct.post_count !== undefined) {
                 count = topProduct.post_count;
+                metricType = getCurrentPlatform() === 'youtube' ? 'videos' : 'posts';
             } else if (topProduct.postCount !== undefined) {
                 count = topProduct.postCount;
+                metricType = 'posts';
             } else if (topProduct.videoCount !== undefined) {
                 count = topProduct.videoCount;
+                metricType = 'videos';
             } else if (topProduct.redditPosts !== undefined) {
                 count = topProduct.redditPosts;
+                metricType = 'posts';
             } else if (topProduct.youtubeVideos !== undefined) {
                 count = topProduct.youtubeVideos;
+                metricType = 'videos';
             }
             
-            // Get the current platform
-            const platform = getCurrentPlatform();
-            const countLabel = platform === 'youtube' ? 'videos' : 'posts';
+            const productName = cleanText(topProduct.name);
+            const categoryName = getCurrentCategoryDisplayName();
             
-            ourPickContent.innerHTML = `
-                <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem;">
-                    ${cleanText(topProduct.name)}
-                </div>
-                <div style="font-size: 0.85rem; opacity: 0.9;">
-                    ${count.toLocaleString()} ${countLabel} • Rank #1
-                </div>
-            `;
+            // Update elements
+            ourPickCategory.textContent = `Best ${categoryName}`;
+            ourPickTitle.textContent = `Our Pick: ${productName}`;
+            ourPickStats.textContent = `${count.toLocaleString()} ${metricType} • Rank #1`;
+            ourPickDescription.textContent = `${productName} is currently the #1 ranked ${categoryName.toLowerCase()} tool with ${count.toLocaleString()} ${metricType}, making it our top recommendation.`;
+            ourPickUrl.innerHTML = `<a href="#" style="color: #ff6b35; font-size: 0.7rem; text-decoration: none;">View Details →</a>`;
+        }
+        
+        // Get current category display name
+        function getCurrentCategoryDisplayName() {
+            const activeItem = document.querySelector('.dropdown-item.active');
+            return activeItem ? activeItem.textContent : 'All Categories';
         }
         
         // Get currently selected category
@@ -1122,6 +1209,21 @@
         function getCurrentPlatform() {
             const activeButton = document.querySelector('.platform-btn.active');
             return activeButton ? activeButton.dataset.platform : 'all';
+        }
+
+        // Update the ranking table header based on platform selection
+        function updateRankingTableHeader() {
+            const header = document.getElementById('ranking-metric-header');
+            if (!header) return;
+            
+            const platform = getCurrentPlatform();
+            if (platform === 'all') {
+                header.textContent = 'Score';
+            } else if (platform === 'reddit') {
+                header.textContent = 'Post Count';
+            } else if (platform === 'youtube') {
+                header.textContent = 'Video Count';
+            }
         }
     </script>
 </body>

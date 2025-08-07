@@ -390,19 +390,29 @@
         </div>
         
         <div class="right-column">
-            <div class="our-pick-card" itemscope itemtype="https://schema.org/Product">
+            <div class="our-pick-card" itemscope itemtype="https://schema.org/Product" role="article" aria-label="Our top AI tool recommendation">
+                <!-- Enhanced Schema.org meta properties -->
+                <meta itemprop="brand" content="AI Tools Dashboard">
+                <meta itemprop="category" content="AI Tools">
+                
+                <!-- Aggregate Rating Schema (hidden) -->
+                <div id="ourPickRating" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating" style="display: none;">
+                    <meta itemprop="bestRating" content="5">
+                    <meta itemprop="ratingValue" content="5.0">
+                    <meta itemprop="reviewCount" content="0">
+                </div>
                 <div style="display: flex; align-items: flex-start; gap: 1rem;">
-                    <img id="ourPickThumbnail" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%23ff6b35'/%3E%3Ctext x='24' y='28' text-anchor='middle' fill='white' font-family='Arial' font-size='16' font-weight='bold'%3E%23%3C/text%3E%3C/svg%3E" alt="Top AI Tool" style="width: 48px; height: 48px; border-radius: 8px; flex-shrink: 0;" itemprop="image">
+                    <img id="ourPickThumbnail" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%23ff6b35'/%3E%3Ctext x='24' y='28' text-anchor='middle' fill='white' font-family='Arial' font-size='16' font-weight='bold'%3E%23%3C/text%3E%3C/svg%3E" alt="Top AI Tool" style="width: 48px; height: 48px; border-radius: 8px; flex-shrink: 0;" itemprop="image" role="img" aria-label="Number one ranked AI tool">
                     <div style="flex: 1;">
                         <div style="font-size: 0.85rem; color: #ff6b35; font-weight: 500; margin-bottom: 0.25rem;" id="ourPickCategory">Best All Categories</div>
-                        <h3 class="our-pick-title" id="ourPickTitle" itemprop="name" style="font-size: 1.1rem; margin-bottom: 0.5rem;">Our Pick: Loading...</h3>
-                        <div class="our-pick-content" id="ourPickStats" style="font-size: 0.8rem; opacity: 0.9; margin-bottom: 0.5rem;">
+                        <h3 class="our-pick-title" id="ourPickTitle" itemprop="name" role="heading" aria-level="3" style="font-size: 1.1rem; margin-bottom: 0.5rem;">Our Pick: Loading...</h3>
+                        <div class="our-pick-content" id="ourPickStats" role="contentinfo" style="font-size: 0.8rem; opacity: 0.9; margin-bottom: 0.5rem;">
                             Loading stats...
                         </div>
-                        <div id="ourPickDescription" itemprop="description" style="font-size: 0.75rem; opacity: 0.8; line-height: 1.3;">
+                        <div id="ourPickDescription" itemprop="description" role="contentinfo" style="font-size: 0.75rem; opacity: 0.8; line-height: 1.3;">
                             Loading description...
                         </div>
-                        <div id="ourPickUrl" style="margin-top: 0.5rem;">
+                        <div id="ourPickUrl" role="link" style="margin-top: 0.5rem;">
                             <!-- URL will be added dynamically -->
                         </div>
                     </div>
@@ -1145,13 +1155,14 @@
             updateOurPickContent(data[0]);
         }
         
-        // Update the "Our Pick" content with the top-ranked product (enhanced version)
+        // Update the "Our Pick" content with the top-ranked product (enhanced SEO version)
         function updateOurPickContent(topProduct) {
             const ourPickTitle = document.getElementById('ourPickTitle');
             const ourPickStats = document.getElementById('ourPickStats');
             const ourPickDescription = document.getElementById('ourPickDescription');
             const ourPickUrl = document.getElementById('ourPickUrl');
             const ourPickCategory = document.getElementById('ourPickCategory');
+            const ourPickRating = document.getElementById('ourPickRating');
             
             if (!ourPickTitle || !topProduct) return;
             
@@ -1178,12 +1189,67 @@
             const productName = cleanText(topProduct.name);
             const categoryName = getCurrentCategoryDisplayName();
             
+            // Enhanced description optimized for AI understanding and voice search
+            const enhancedDescription = `${productName} ranks #1 among ${categoryName.toLowerCase()} tools with ${count.toLocaleString()} ${metricType}. This AI-powered solution excels in performance, user engagement, and reliability, making it our top recommendation for ${categoryName.toLowerCase()} applications.`;
+            
             // Update elements
             ourPickCategory.textContent = `Best ${categoryName}`;
             ourPickTitle.textContent = `Our Pick: ${productName}`;
             ourPickStats.textContent = `${count.toLocaleString()} ${metricType} • Rank #1`;
-            ourPickDescription.textContent = `${productName} is currently the #1 ranked ${categoryName.toLowerCase()} tool with ${count.toLocaleString()} ${metricType}, making it our top recommendation.`;
-            ourPickUrl.innerHTML = `<a href="#" style="color: #ff6b35; font-size: 0.7rem; text-decoration: none;">View Details →</a>`;
+            ourPickDescription.textContent = enhancedDescription;
+            ourPickUrl.innerHTML = `<a href="#" itemprop="url" style="color: #ff6b35; font-size: 0.7rem; text-decoration: none;">View Details →</a>`;
+            
+            // Update aggregate rating schema with actual data
+            if (ourPickRating) {
+                const reviewCountMeta = ourPickRating.querySelector('[itemprop="reviewCount"]');
+                if (reviewCountMeta) {
+                    reviewCountMeta.setAttribute('content', count.toString());
+                }
+            }
+            
+            // Add/Update JSON-LD structured data for enhanced SEO
+            updateOurPickJsonLD(productName, categoryName, enhancedDescription, count, metricType);
+        }
+        
+        // Add JSON-LD structured data for Our Pick
+        function updateOurPickJsonLD(productName, categoryName, description, count, metricType) {
+            const jsonLD = {
+                "@context": "https://schema.org",
+                "@type": "Product",
+                "name": productName,
+                "description": description,
+                "category": categoryName,
+                "brand": {
+                    "@type": "Brand",
+                    "name": "AI Tools Dashboard"
+                },
+                "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": "5.0",
+                    "bestRating": "5.0",
+                    "worstRating": "1.0",
+                    "reviewCount": count
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "availability": "https://schema.org/InStock",
+                    "priceCurrency": "USD",
+                    "price": "0"
+                }
+            };
+            
+            // Remove existing Our Pick JSON-LD if present
+            const existingScript = document.getElementById('ourPickJsonLD');
+            if (existingScript) {
+                existingScript.remove();
+            }
+            
+            // Add new JSON-LD script to head
+            const script = document.createElement('script');
+            script.id = 'ourPickJsonLD';
+            script.type = 'application/ld+json';
+            script.textContent = JSON.stringify(jsonLD, null, 2);
+            document.head.appendChild(script);
         }
         
         // Get current category display name

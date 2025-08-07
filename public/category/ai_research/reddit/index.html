@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best AI Tools - Ai Research (Reddit, 30 Days) | AI Tools Dashboard</title>
+    <meta name="description" content="Top AI tools rankings for Ai Research based on Reddit data over 30 Days. Real-time analytics and performance insights.">
+    <meta property="og:title" content="Best AI Tools - Ai Research (Reddit, 30 Days) | AI Tools Dashboard">
+    <meta property="og:description" content="Top AI tools rankings for Ai Research based on Reddit data over 30 Days. Real-time analytics and performance insights.">
+    <meta property="og:type" content="website">
+    <link rel="canonical" href="https://ai-tracker-466821.web.app&#x2F;category&#x2F;ai_research&#x2F;reddit&#x2F;">
+    
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"ItemList","name":"Best AI Tools - Ai Research (Reddit, 30 Days) | AI Tools Dashboard","description":"Top AI tools rankings for Ai Research based on Reddit data over 30 Days. Real-time analytics and performance insights.","numberOfItems":0,"itemListElement":[]}
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .topbar {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: 0.5rem;
+            border-bottom: 1px solid #2a2a2a;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-start;
+            align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        
+        .time-filters, .platform-filters {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .time-btn, .platform-btn {
+            background: #1f1f1f;
+            border: 1px solid #2a2a2a;
+            color: #999;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        
+        .time-btn.active, .platform-btn.active {
+            background: #ff6b35;
+            color: #000;
+        }
+        
+        .filter-label {
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        
+        .category-dropdown {
+            position: relative;
+        }
+        
+        .dropdown-toggle {
+            background: #1f1f1f;
+            border: 1px solid #2a2a2a;
+            color: #999;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            min-width: 200px;
+            z-index: 100;
+        }
+        
+        .dropdown-menu.open {
+            display: block;
+        }
+        
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: #999;
+            padding: 0.5rem;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .dropdown-item:hover {
+            background: #2a2a2a;
+            color: #fff;
+        }
+        
+        .dropdown-item.active {
+            background: #ff6b35;
+            color: #000;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(500px, 1fr) 2fr;
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 100vw;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: auto;
+        }
+        
+        .left-column, .right-column {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .left-column {
+            min-width: 500px;
+        }
+        
+        .chart-container {
+            position: relative;
+            background: #0f0f0f;
+            border-radius: 8px;
+            padding: 0.25rem 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            flex: 1;
+            min-height: 200px;
+        }
+        
+        #performanceChart {
+            max-width: 100%;
+            height: 100%;
+        }
+        
+        .card {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid #2a2a2a;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chart-card {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid #2a2a2a;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        
+        .card-title {
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+        
+        .ranking-table {
+            width: 100%;
+            overflow-x: auto;
+            flex: 1;
+        }
+        
+        table {
+            width: 100%;
+            min-width: 400px;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 8px 0;
+            text-align: center;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        
+        th {
+            background: #2a2a2a;
+            color: #ff6b35;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        th:first-child, td:first-child {
+            width: 15%;
+        }
+        
+        th:last-child, td:last-child {
+            width: 20%;
+        }
+        
+        td {
+            color: #fff;
+            font-size: 0.75rem;
+        }
+        
+        .our-pick-card {
+            background: linear-gradient(135deg, #2a1810 0%, #ff6b35 100%);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid #ff6b35;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .our-pick-image {
+            width: 60px;
+            height: 60px;
+            background: #ff6b35;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .our-pick-image img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        
+        .our-pick-content {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .our-pick-category {
+            color: #fff;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            opacity: 0.9;
+        }
+        
+        .our-pick-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+        
+        .our-pick-stats {
+            color: #fff;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.9;
+        }
+        
+        .our-pick-description {
+            color: #fff;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+            opacity: 0.85;
+        }
+        
+        .our-pick-link {
+            color: #fff;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        
+        .our-pick-link:hover {
+            opacity: 1;
+        }
+        
+        .page-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: #1a1a1a;
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            color: #666;
+            border: 1px solid #333;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                padding: 0.5rem;
+            }
+            
+            .chart-container {
+                min-height: 200px;
+                height: 250px;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .left-column {
+                min-width: auto;
+            }
+            
+            .card {
+                padding: 0.5rem;
+            }
+            
+            .our-pick-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 1rem;
+            }
+            
+            .our-pick-content {
+                text-align: center;
+            }
+            
+            .our-pick-image {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="filter-controls">
+            <div class="time-filters">
+                <span class="filter-label">Period:</span>
+                <a class="time-btn" href="&#x2F;category&#x2F;ai_research&#x2F;reddit&#x2F;7d&#x2F;">7d</a>
+                <a class="time-btn active" href="#">30d</a>
+                <a class="time-btn" href="&#x2F;category&#x2F;ai_research&#x2F;reddit&#x2F;90d&#x2F;">90d</a>
+            </div>
+            
+            <div class="platform-filters">
+                <span class="filter-label">Platform:</span>
+                <a class="platform-btn" href="&#x2F;category&#x2F;ai_research&#x2F;">All</a>
+                <a class="platform-btn active" href="#">Reddit</a>
+                <a class="platform-btn" href="&#x2F;category&#x2F;ai_research&#x2F;youtube&#x2F;">YouTube</a>
+            </div>
+            
+            <div class="category-dropdown">
+                <button class="dropdown-toggle" onclick="toggleDropdown()">
+                    <span>Ai Research</span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </button>
+                <div class="dropdown-menu" id="categoryDropdown">
+                    <a class="dropdown-item" href="&#x2F;reddit&#x2F;">All Categories</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;ai_chatbots&#x2F;reddit&#x2F;">Ai Chatbots</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;ai_coding_agents&#x2F;reddit&#x2F;">Ai Coding Agents</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;ai_companions&#x2F;reddit&#x2F;">Ai Companions</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;ai_media_generation&#x2F;reddit&#x2F;">Ai Media Generation</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;ai_models&#x2F;reddit&#x2F;">Ai Models</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;automation&#x2F;reddit&#x2F;">Automation</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;devices&#x2F;reddit&#x2F;">Devices</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;general_ai&#x2F;reddit&#x2F;">General Ai</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;health_and_fitness&#x2F;reddit&#x2F;">Health And Fitness</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;marketing&#x2F;reddit&#x2F;">Marketing</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;productivity&#x2F;reddit&#x2F;">Productivity</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;robots&#x2F;reddit&#x2F;">Robots</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;social_media&#x2F;reddit&#x2F;">Social Media</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;website_builder&#x2F;reddit&#x2F;">Website Builder</a>
+                    <a class="dropdown-item active" href="&#x2F;category&#x2F;ai_research&#x2F;reddit&#x2F;">Ai Research</a>
+                    <a class="dropdown-item" href="&#x2F;category&#x2F;fintech&#x2F;reddit&#x2F;">Fintech</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="left-column">
+            <div class="card" itemscope itemtype="https://schema.org/ItemList">
+                <h2 class="card-title" itemprop="name">Rankings - Ai Research (Reddit, 30d)</h2>
+                <div class="ranking-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Posts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 20px; color: #999;">No data available for this combination</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 1rem;" itemscope itemtype="https://schema.org/ItemList">
+                <h2 class="card-title" itemprop="name">Trending (Product Hunt)</h2>
+                <div class="ranking-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                                <td itemprop="position">1</td>
+                                <td itemprop="name">Testsprite 2.0</td>
+                                <td>Ai Coding Agents</td>
+                                <td>112.1</td>
+                            </tr>
+                            <tr itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                                <td itemprop="position">2</td>
+                                <td itemprop="name">Trickle - Magic Canvas</td>
+                                <td>Ai Media Generation</td>
+                                <td>106.2</td>
+                            </tr>
+                            <tr itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                                <td itemprop="position">3</td>
+                                <td itemprop="name">Ash Ai</td>
+                                <td>Health And Fitness</td>
+                                <td>85.3</td>
+                            </tr>
+                            <tr itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                                <td itemprop="position">4</td>
+                                <td itemprop="name">Brain Max By Clickup</td>
+                                <td>General Ai</td>
+                                <td>83.5</td>
+                            </tr>
+                            <tr itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                                <td itemprop="position">5</td>
+                                <td itemprop="name">Mocha</td>
+                                <td>General Ai</td>
+                                <td>80.1</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="right-column">
+            <div class="our-pick-card">
+                <div class="our-pick-content">
+                    <h3 class="our-pick-title">Our Pick</h3>
+                    <p class="our-pick-stats">No data available for this selection</p>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 class="card-title" style="margin: 0;">Top 3 Performance (30d)</h2>
+                    <div class="chart-legend" style="display: flex; gap: 1rem; font-size: 0.75rem;">
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page info for development -->
+    <div class="page-info">
+        Static: ai_research/reddit/30d | Generated: 2025-08-07
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Dropdown functionality
+        function toggleDropdown() {
+            const dropdown = document.getElementById('categoryDropdown');
+            dropdown.classList.toggle('open');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.category-dropdown')) {
+                const dropdown = document.getElementById('categoryDropdown');
+                dropdown.classList.remove('open');
+            }
+        });
+        
+        // Pre-embedded chart data
+        const chartData = {"labels":["Jul 3","Jul 10","Jul 17","Jul 24","Jul 31","Aug 7"],"datasets":[]};
+        
+        // Initialize chart with embedded data
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        const performanceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels || [],
+                datasets: chartData.datasets.map((dataset, index) => ({
+                    label: dataset.label,
+                    data: dataset.data,
+                    borderColor: dataset.color,
+                    backgroundColor: dataset.color + '20',
+                    tension: 0,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }))
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#999' },
+                        grid: { color: '#333' }
+                    },
+                    y: {
+                        ticks: { color: '#999' },
+                        grid: { color: '#333' },
+                        title: {
+                            display: true,
+                            text: 'Activity Level',
+                            color: '#999',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

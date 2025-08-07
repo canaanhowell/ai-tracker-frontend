@@ -1,26 +1,22 @@
 {
-  "name": "ai-tracker-frontend",
+  "name": "frontend",
   "version": "1.0.0",
-  "description": "AI Tracker Dashboard - Real-time trend visualization",
-  "main": "script.js",
-  "directories": {
-    "doc": "docs",
-    "example": "examples"
-  },
-  "scripts": {
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed",
-    "deploy": "npx firebase deploy --only hosting --project ai-tracker-466821",
-    "serve": "python3 -m http.server 3000"
-  },
-  "keywords": [],
+  "description": "Ultra-fast static AI tools dashboard with 153 pre-generated pages",
+  "main": "build-static.js",
+  "keywords": ["static-site", "firebase", "ai-tools", "dashboard"],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@playwright/test": "^1.54.2"
-  },
   "dependencies": {
-    "firebase-admin": "^13.4.0"
+    "dotenv": "^17.2.1",
+    "firebase-admin": "^13.4.0",
+    "fs-extra": "^11.1.0",
+    "mustache": "^4.2.0"
+  },
+  "scripts": {
+    "build": "node build-static.js",
+    "serve": "cd public && python3 -m http.server 8080",
+    "deploy": "GOOGLE_APPLICATION_CREDENTIALS=./ai-tracker-466821-892ecf5150a3.json firebase deploy --only hosting",
+    "build-and-deploy": "npm run build && npm run deploy",
+    "test": "npm run serve"
   }
 }

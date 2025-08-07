@@ -390,32 +390,10 @@
         </div>
         
         <div class="right-column">
-            <div class="our-pick-card" itemscope itemtype="https://schema.org/Product" role="article" aria-label="Our top AI tool recommendation">
-                <!-- Enhanced Schema.org meta properties -->
-                <meta itemprop="brand" content="AI Tools Dashboard">
-                <meta itemprop="category" content="AI Tools">
-                
-                <!-- Aggregate Rating Schema (hidden) -->
-                <div id="ourPickRating" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating" style="display: none;">
-                    <meta itemprop="bestRating" content="5">
-                    <meta itemprop="ratingValue" content="5.0">
-                    <meta itemprop="reviewCount" content="0">
-                </div>
-                <div style="display: flex; align-items: flex-start; gap: 1rem;">
-                    <img id="ourPickThumbnail" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%23ff6b35'/%3E%3Ctext x='24' y='28' text-anchor='middle' fill='white' font-family='Arial' font-size='16' font-weight='bold'%3E%23%3C/text%3E%3C/svg%3E" alt="Top AI Tool" style="width: 48px; height: 48px; border-radius: 8px; flex-shrink: 0;" itemprop="image" role="img" aria-label="Number one ranked AI tool">
-                    <div style="flex: 1;">
-                        <div style="font-size: 0.85rem; color: #ff6b35; font-weight: 500; margin-bottom: 0.25rem;" id="ourPickCategory">Best All Categories</div>
-                        <h3 class="our-pick-title" id="ourPickTitle" itemprop="name" role="heading" aria-level="3" style="font-size: 1.1rem; margin-bottom: 0.5rem;">Our Pick: Loading...</h3>
-                        <div class="our-pick-content" id="ourPickStats" role="contentinfo" style="font-size: 0.8rem; opacity: 0.9; margin-bottom: 0.5rem;">
-                            Loading stats...
-                        </div>
-                        <div id="ourPickDescription" itemprop="description" role="contentinfo" style="font-size: 0.75rem; opacity: 0.8; line-height: 1.3;">
-                            Loading description...
-                        </div>
-                        <div id="ourPickUrl" role="link" style="margin-top: 0.5rem;">
-                            <!-- URL will be added dynamically -->
-                        </div>
-                    </div>
+            <div class="our-pick-card">
+                <div style="text-align: center; padding: 2rem; color: #999;">
+                    <h3 style="margin: 0 0 0.5rem 0; color: #ff6b35;">Our Pick</h3>
+                    <p style="margin: 0; font-size: 0.9rem;">Coming Soon</p>
                 </div>
             </div>
             
@@ -674,37 +652,15 @@
             return labels;
         }
 
-        // Generate trend data based on actual Firebase metrics (velocity, momentum, etc.)
-        function generateTrendDataFromMetrics(product, timePeriod = '30') {
+        // REAL DATA ONLY: Use current values (no fake historical trends)
+        function getRealDataOnly(product, timePeriod = '30') {
             const labels = generateTimeLabels(timePeriod);
-            const numDataPoints = labels.length;
+            const currentValue = product.post_count || product.postCount || product.videoCount || product.combined_score || 0;
             
-            // Use actual metrics from Firebase data
-            const velocity = product.velocity || 0;
-            const momentum = product.momentum || product.acceleration || 0;
-            const currentValue = product.post_count || product.postCount || product.videoCount || velocity;
+            // NO FAKE TRENDS - just repeat current real value
+            const realData = Array(labels.length).fill(currentValue);
             
-            // Calculate realistic historical trend based on velocity and momentum
-            const baseValue = Math.max(1, currentValue);
-            
-            // Work backwards from current value using velocity and momentum
-            let previousValue = baseValue;
-            const trendData = [baseValue]; // Start with current value
-            
-            // Generate historical data points based on time period
-            const periodDays = parseInt(timePeriod);
-            const intervalDays = Math.floor(periodDays / (numDataPoints - 1)); // Days between each data point
-            
-            for (let i = 1; i < numDataPoints; i++) {
-                // Use velocity to determine the rate of change per interval
-                const intervalChange = (velocity * intervalDays) / 7; // Adjust velocity for interval length
-                const momentumEffect = momentum * 0.1 * i; // Momentum increases effect over time
-                
-                previousValue = Math.max(1, Math.round(previousValue - intervalChange - momentumEffect));
-                trendData.unshift(previousValue); // Add to beginning of array
-            }
-            
-            return { labels, data: trendData };
+            return { labels, data: realData };
         }
 
         // Update chart with top 3 products from rankings table
@@ -726,21 +682,21 @@
                 postCount: p.post_count || p.postCount || p.videoCount
             })));
             
-            // Generate trend data with appropriate time period
+            // Use REAL data only (no fake trends)
             let chartLabels = [];
             const datasets = top3Products.map((product, index) => {
-                const trendResult = generateTrendDataFromMetrics(product, currentTimePeriod);
+                const realResult = getRealDataOnly(product, currentTimePeriod);
                 
                 // Use labels from the first product (they'll all be the same)
                 if (index === 0) {
-                    chartLabels = trendResult.labels;
+                    chartLabels = realResult.labels;
                 }
                 
-                console.log(`📈 ${cleanText(product.name)} (${currentTimePeriod}d) trend data:`, trendResult.data);
+                console.log(`📈 ${cleanText(product.name)} (${currentTimePeriod}d) real data:`, realResult.data);
                 
                 return {
                     label: cleanText(product.name),
-                    data: trendResult.data,
+                    data: realResult.data,
                     borderColor: chartColors[index],
                     backgroundColor: chartColors[index].replace(')', ', 0.1)').replace('rgb', 'rgba').replace('#', 'rgba(' + 
                         parseInt(chartColors[index].slice(1,3), 16) + ',' + 
@@ -861,11 +817,7 @@
                 // Also clear the performance chart
                 clearPerformanceChart();
                 
-                // Clear "Our Pick" content
-                const ourPickContent = document.getElementById('ourPickContent');
-                if (ourPickContent) {
-                    ourPickContent.innerHTML = '<span style="color: #999;">No data available</span>';
-                }
+                // Our Pick component removed - skeleton only
             } else if (tableType === 'trending') {
                 tableBody = document.querySelector('.card:last-child tbody');
                 message = 'No trending data available';
@@ -1038,8 +990,7 @@
                 dropdownToggle.textContent = categoryText;
             }
             
-            // Update "Our Pick" title with the selected category
-            updateOurPickTitle(categoryText);
+            // Our Pick component removed - skeleton only
             
             // Update active state
             const dropdownItems = document.querySelectorAll('.dropdown-item');
@@ -1061,13 +1012,7 @@
             }
         }
         
-        // Update the "Our Pick" title based on selected category
-        function updateOurPickTitle(categoryName) {
-            const ourPickTitle = document.getElementById('ourPickTitle');
-            if (ourPickTitle) {
-                ourPickTitle.textContent = `Our Pick: Best ${categoryName}`;
-            }
-        }
+        // Our Pick functions removed - skeleton only
         
         // Load rankings data based on current filters
         async function loadRankingsData() {
@@ -1151,106 +1096,10 @@
             // Update the performance chart with the new rankings data
             updatePerformanceChart(data);
             
-            // Update "Our Pick" with the top-ranked item
-            updateOurPickContent(data[0]);
+            // Our Pick component removed - skeleton only
         }
         
-        // Update the "Our Pick" content with the top-ranked product (enhanced SEO version)
-        function updateOurPickContent(topProduct) {
-            const ourPickTitle = document.getElementById('ourPickTitle');
-            const ourPickStats = document.getElementById('ourPickStats');
-            const ourPickDescription = document.getElementById('ourPickDescription');
-            const ourPickUrl = document.getElementById('ourPickUrl');
-            const ourPickCategory = document.getElementById('ourPickCategory');
-            const ourPickRating = document.getElementById('ourPickRating');
-            
-            if (!ourPickTitle || !topProduct) return;
-            
-            // Extract the relevant count and determine metric type
-            let count = 0;
-            let metricType = 'mentions';
-            if (topProduct.post_count !== undefined) {
-                count = topProduct.post_count;
-                metricType = getCurrentPlatform() === 'youtube' ? 'videos' : 'posts';
-            } else if (topProduct.postCount !== undefined) {
-                count = topProduct.postCount;
-                metricType = 'posts';
-            } else if (topProduct.videoCount !== undefined) {
-                count = topProduct.videoCount;
-                metricType = 'videos';
-            } else if (topProduct.redditPosts !== undefined) {
-                count = topProduct.redditPosts;
-                metricType = 'posts';
-            } else if (topProduct.youtubeVideos !== undefined) {
-                count = topProduct.youtubeVideos;
-                metricType = 'videos';
-            }
-            
-            const productName = cleanText(topProduct.name);
-            const categoryName = getCurrentCategoryDisplayName();
-            
-            // Enhanced description optimized for AI understanding and voice search
-            const enhancedDescription = `${productName} ranks #1 among ${categoryName.toLowerCase()} tools with ${count.toLocaleString()} ${metricType}. This AI-powered solution excels in performance, user engagement, and reliability, making it our top recommendation for ${categoryName.toLowerCase()} applications.`;
-            
-            // Update elements
-            ourPickCategory.textContent = `Best ${categoryName}`;
-            ourPickTitle.textContent = `Our Pick: ${productName}`;
-            ourPickStats.textContent = `${count.toLocaleString()} ${metricType} • Rank #1`;
-            ourPickDescription.textContent = enhancedDescription;
-            ourPickUrl.innerHTML = `<a href="#" itemprop="url" style="color: #ff6b35; font-size: 0.7rem; text-decoration: none;">View Details →</a>`;
-            
-            // Update aggregate rating schema with actual data
-            if (ourPickRating) {
-                const reviewCountMeta = ourPickRating.querySelector('[itemprop="reviewCount"]');
-                if (reviewCountMeta) {
-                    reviewCountMeta.setAttribute('content', count.toString());
-                }
-            }
-            
-            // Add/Update JSON-LD structured data for enhanced SEO
-            updateOurPickJsonLD(productName, categoryName, enhancedDescription, count, metricType);
-        }
-        
-        // Add JSON-LD structured data for Our Pick
-        function updateOurPickJsonLD(productName, categoryName, description, count, metricType) {
-            const jsonLD = {
-                "@context": "https://schema.org",
-                "@type": "Product",
-                "name": productName,
-                "description": description,
-                "category": categoryName,
-                "brand": {
-                    "@type": "Brand",
-                    "name": "AI Tools Dashboard"
-                },
-                "aggregateRating": {
-                    "@type": "AggregateRating",
-                    "ratingValue": "5.0",
-                    "bestRating": "5.0",
-                    "worstRating": "1.0",
-                    "reviewCount": count
-                },
-                "offers": {
-                    "@type": "Offer",
-                    "availability": "https://schema.org/InStock",
-                    "priceCurrency": "USD",
-                    "price": "0"
-                }
-            };
-            
-            // Remove existing Our Pick JSON-LD if present
-            const existingScript = document.getElementById('ourPickJsonLD');
-            if (existingScript) {
-                existingScript.remove();
-            }
-            
-            // Add new JSON-LD script to head
-            const script = document.createElement('script');
-            script.id = 'ourPickJsonLD';
-            script.type = 'application/ld+json';
-            script.textContent = JSON.stringify(jsonLD, null, 2);
-            document.head.appendChild(script);
-        }
+        // Our Pick functions removed - skeleton only
         
         // Get current category display name
         function getCurrentCategoryDisplayName() {
